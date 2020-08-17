@@ -5,9 +5,13 @@ from prettytable import PrettyTable
 
 from devices.flipflop import ClockBasedLogicDevice
 from utils.bit import Bit
+from utils.optionalrange import OptionalRange
 
 
 class Circuit(ClockBasedLogicDevice):
+    INPUTS_COUNT = OptionalRange(None, None)
+    OUTPUTS_COUNT = OptionalRange(None, None)
+
     def __init__(self, inputs, outputs, devices):
         super().__init__(inputs, outputs)
         self.devices = devices
@@ -44,15 +48,31 @@ class Circuit(ClockBasedLogicDevice):
 
     def all_outputs(self) -> List:
         inputs: List = self.inputs
+        states: List = self._get_all_states()
         outputs = []
-        for table in product((False, True), repeat=len(inputs)):
-            outputs.append((table, self.do(dict(zip(inputs, table)))))
+        for table in product((False, True), repeat=len(inputs + states)):
+            self.set_state(table[len(inputs):])
+            outputs.append((table, self.do(dict(zip(inputs, table[:len(inputs)])))))
         return outputs
 
+    def _get_all_states(self):
+        state_devs = []
+        for dev in self.devices:
+            if isinstance(dev, ClockBasedLogicDevice):
+                state_devs.append(dev)
+        return tuple(state_devs)
+
+    def set_state(self, states):
+        devs: ClockBasedLogicDevice = self._get_all_states()
+        assert len(states) == len(devs)
+        for dev, state in zip(devs, states):
+            dev.set_state(state)
+
     def build_table(self) -> PrettyTable:
+        # TODO: Handle states
         p = PrettyTable()
         t = self.all_outputs()
-        p.field_names = self.inputs + self.outputs
+        p.field_names = self.inputs + self._get_all_states() + self.outputs
         for res in t:
             a, b = res[0], res[1]
             print(a, b)
@@ -62,5 +82,3 @@ class Circuit(ClockBasedLogicDevice):
     def __eq__(self, other) -> bool:
         # TODO: Must compare states as well
         return self.all_outputs() == other.all_outputs()
-
-

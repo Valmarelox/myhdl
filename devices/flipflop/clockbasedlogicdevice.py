@@ -1,11 +1,25 @@
 from devices.logicdevice import LogicDevice
+from utils.optionalrange import OptionalRange
 
 
 class ClockBasedLogicDevice(LogicDevice):
+    OUTPUTS_COUNT = OptionalRange(1, 2)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.state = 0
-        self.next_state = 0
+        self._state = 0
+        self._next_state = 0
+
+    def set_state(self, state):
+        self._state = state
 
     def cycle_state(self):
-        self.state = self.next_state
+        self._state = self._next_state
+
+    def do(self) -> tuple:
+        if len(self.outputs) == 2:
+            return (self._state, not self._state)
+        elif len(self.outputs) == 1:
+            return (self._state, )
+        else:
+            assert False, len(self.outputs)

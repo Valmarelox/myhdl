@@ -29,13 +29,14 @@ c = Circuit(inputs=['x','y'], outputs=['z'], devices=[
     DFF('a0', 'A'),
     Not('A', 'K'),
     Nor(['a2', 'a3'], 'J'),
-    JKFF(['J', 'K']),
-])
-
-
-c = Circuit(['w','x','y','z'], outputs='out', devices=[
-    Not('y', 'ny'),
-    Or(['x', 'z'], 'xz'),
-    Mux(2, ['w', 'ny', 'ny', 'ny', 'x', 'xz'], 'out')
+    JKFF(['J', 'K'], outputs=['B', 'nB']),
+    Xor(['nB', 'A', 'y'], 'z')
 ])
 print(c.build_table())
+
+#c = Circuit(['w','x','y','z'], outputs='out', devices=[
+#    Not('y', 'ny'),
+#    Or(['x', 'z'], 'xz'),
+#    Mux(2, ['w', 'ny', 'ny', 'ny', 'x', 'xz'], 'out')
+#])
+#print(c.build_table())

@@ -23,3 +23,6 @@ class ClockBasedLogicDevice(LogicDevice):
             return (self._state, )
         else:
             assert False, len(self.outputs)
+
+    def __repr__(self):
+        return f'{type(self).__name__}: {self.outputs[0]} (t-1)'
